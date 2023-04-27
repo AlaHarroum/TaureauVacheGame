@@ -1,0 +1,199 @@
+from asyncore import loop
+from cgitb import text
+from distutils import command
+from email.mime import image
+from faulthandler import disable
+
+from re import T
+from textwrap import fill
+from tkinter import *
+from turtle import color
+from venv import create
+import pygame 
+from Traitement import TraitementNum
+from tkinter import messagebox
+import random
+
+
+
+global game_window
+global principal 
+global saisie_box
+global nb_iteration 
+
+
+
+Font_tuple = ("Comic Sans MS", 20, "bold" )
+Font_Result = ("Times", "24" ,"bold italic") 
+
+
+
+def move_page2():
+    principal.RemoveHomePage()
+    principal.StopMusic()
+    game_window=InterfaceGame()
+    game_window.RunGamePage()
+    
+
+
+class InterfaceGame:
+    def __init__(self):
+    #create the game Windows
+        game_window=self.game_window= Tk()
+        game_window.title("Start the GAME")
+        game_window.geometry("950x517")
+        game_window.minsize(950,517)
+        game_window.maxsize(950,517)
+        game_window.iconbitmap("appicon.ico")
+        self.SetBackgroundGame()
+        self.nb_iteration=1
+        self.x=150
+        self.y=90
+        self.rand = self.generateNum()
+
+
+    def generateNum(self):
+        while True:
+            num1=random.randint(1000,9999)
+            ch=str(num1)
+            if((ch[0] not in ch[1:]) and (ch[1] not in ch[2:]) and ch[2]!=ch[3]):
+                return num1
+
+    def control(self):
+        sais=self.saisie_box.get()
+        t=TraitementNum(sais)
+        print("Hhhhhhhhhhh: "+str(self.rand))
+        tab=[]
+        if(self.nb_iteration>10):
+            self.canvas_back2.create_text(self.x+70,self.y,text="You LOST !", font=("Times", "15" ,"bold italic"), fill="#DA2020")
+            self.canvas_back2.create_text(self.x+70,self.y+30,text="[The Secret Code is: "+str(self.rand)+"]", font=("Times", "15" ,"bold italic"), fill="#050E82")
+
+            self.saisie_box.config(state='disabled')
+            self.saisie_btn.config(state='disabled')
+            pygame.mixer.init()
+            pygame.mixer.music.load("soundlost.mp3")
+            pygame.mixer.music.play(1)
+            pygame.mixer.music.set_volume(0.5)
+            messagebox.showinfo('DEFEAT', 'Defeat, you have exceeded the trial limit !')
+            
+        else:
+            if(t.check_occ(sais)):
+                tab=t.countTV(self.rand)
+                if(tab[0]==4):
+                    self.canvas_back2.create_text(self.x,self.y,text="Essai "+str(self.nb_iteration)+": "+sais+" : "+str(tab[0])+"T, "+str(tab[1])+"V", font=("Times", "15" ,"bold italic"), fill="#0D0D0F")
+                    self.canvas_back2.create_text(self.x+70,self.y+25,text="Congratulations ! You won", font=("Times", "15" ,"bold italic"), fill="#1AB61A")
+                    self.canvas_back2.create_text(self.x+70,self.y+50,text="[The Secret Code is: "+str(self.rand)+"]", font=("Times", "15" ,"bold italic"), fill="#050E82")
+                    pygame.mixer.init()
+                    pygame.mixer.music.load("soundcongra.mp3")
+                    pygame.mixer.music.play(1)
+                    pygame.mixer.music.set_volume(0.5)
+                    self.saisie_box.config(state='disabled')
+                    self.saisie_btn.config(state='disabled')
+                    
+                    messagebox.showinfo('VICTOIRE', 'CONGRATULATIONS ! You won')
+                    ##################################
+                    
+                else:
+                    self.canvas_back2.create_text(self.x,self.y,text="Essai "+str(self.nb_iteration)+": "+sais+" : "+str(tab[0])+"T, "+str(tab[1])+"V", font=("Times", "15" ,"bold italic"), fill="#0D0D0F")
+                    self.nb_iteration+=1
+                    self.y=self.y+28
+            else:
+                messagebox.showinfo('WRONG', 'Enter a valid Integer !')        
+
+
+
+
+            
+                
+
+            
+
+
+
+    #Define Background for page 2
+    def SetBackgroundGame(self):
+        self.bg2=PhotoImage(file="background3.png")
+        #Create canvas for page 2
+        self.canvas_back2 = Canvas(self.game_window, width=950, height=500)
+        self.canvas_back2.pack(fill="both", expand=True)
+        #Set background-image in canvas page 2
+        self.canvas_back2.create_image(0,0, image=self.bg2, anchor="nw")
+        #Input field 
+        self.saisie_box=Entry(borderwidth=5, font=("default", 15), width=10, justify=CENTER)
+        saisie_window=self.canvas_back2.create_window(673,240, anchor="nw", window=self.saisie_box)
+        #Add button START
+        self.saisie_btn= Button(self.game_window, text="Entry", font=("Helvetica",20), bg="#3C91EA", fg="white", border=7, command=self.control) 
+        saisie_btn_window =self.canvas_back2.create_window(685, 300, anchor="nw", window=self.saisie_btn)
+        #Create Text "Start the Game"
+        self.canvas_back2.create_text(735,190,text="LET'S START", font=(Font_tuple), fill="#050E82")
+        #Title Result
+        self.canvas_back2.create_text(230,50,text="RESULT", font=(Font_Result), fill="#050E82")
+
+    def RunGamePage(self):    
+        self.game_window.mainloop()
+
+    def getSaisie(self):
+        return self.saisie_box.get()
+
+
+
+    
+
+    
+
+
+    
+    
+
+
+################################ Principal Page ################################
+
+#create the principale Windows
+class InterfaceHome:
+    def __init__(self):
+        principal=self.principal= Tk()
+        principal.title("Jeu Taureau/Vache: Bienvenue")
+        principal.geometry("950x517")
+        principal.minsize(950,517)
+        principal.maxsize(950,517)
+        principal.iconbitmap("appicon.ico")
+        self.SetBackgroundHome()
+        self.StartMusic()
+        
+        
+
+        #Define Background
+    def SetBackgroundHome(self):
+        self.bg=PhotoImage(file="background.png")
+        self.image_start= PhotoImage(file="btn1.png")
+    #Create canvas
+        self.canvas_back = Canvas(self.principal, width=950, height=500)
+        self.canvas_back.pack(fill="both", expand=True)
+    #Set background-image in canvas
+        self.canvas_back.create_image(0,0, image=self.bg, anchor="nw")
+    #Add button START
+        self.start_btn= Button(self.principal, image=self.image_start,  command=move_page2, borderwidth=0) 
+        self.start_btn_window =self.canvas_back.create_window(620, 425, anchor="nw", window=self.start_btn)
+
+    #Destroy HomePage
+    def RemoveHomePage(self):
+        self.principal.destroy()
+
+    def StartMusic(self):
+            #play Music
+        pygame.mixer.init()
+        pygame.mixer.music.load("songstart.mp3")
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.5)
+
+    def StopMusic(self):
+        pygame.mixer.music.stop()
+
+    def RunHomePage(self):
+        self.principal.mainloop()    
+
+
+
+#Display principal page
+principal= InterfaceHome()
+principal.RunHomePage()
